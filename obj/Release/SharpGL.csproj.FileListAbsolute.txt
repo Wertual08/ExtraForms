@@ -1,0 +1,7 @@
+D:\Documents\Visual Studio 2019\Projects\SharpGL\SharpGL\bin\Release\SharpGL.dll
+D:\Documents\Visual Studio 2019\Projects\SharpGL\SharpGL\bin\Release\SharpGL.pdb
+D:\Documents\Visual Studio 2019\Projects\SharpGL\SharpGL\obj\Release\SharpGL.OpenGLSurface.resources
+D:\Documents\Visual Studio 2019\Projects\SharpGL\SharpGL\obj\Release\SharpGL.csproj.GenerateResource.cache
+D:\Documents\Visual Studio 2019\Projects\SharpGL\SharpGL\obj\Release\SharpGL.dll
+D:\Documents\Visual Studio 2019\Projects\SharpGL\SharpGL\obj\Release\SharpGL.pdb
+D:\Documents\Visual Studio 2019\Projects\SharpGL\SharpGL\obj\Release\SharpGL.csprojAssemblyReference.cache
