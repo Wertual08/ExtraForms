@@ -62,6 +62,11 @@ namespace ExtraForms
             CurrentContext = HGLRC;
             return wgl.MakeCurrent(HDC, HGLRC);
         }
+        public static void ResetCurrent()
+        {
+            wgl.MakeCurrent(IntPtr.Zero, IntPtr.Zero);
+            CurrentContext = IntPtr.Zero;
+        }
         public void GLRequest(Action action)
         {
             if (MakeCurrent()) action();
@@ -89,7 +94,7 @@ namespace ExtraForms
         }
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            GLMouseWheel?.Invoke(this, new GLMouseEventArgs(
+            if (MakeCurrent()) GLMouseWheel?.Invoke(this, new GLMouseEventArgs(
                 e.Button, e.Clicks, e.X / GLZoom - SurfaceSize.Width / 2f,
                 SurfaceSize.Height / 2f - e.Y / GLZoom, (float)e.Delta /
                 SystemInformation.MouseWheelScrollDelta));
@@ -97,7 +102,7 @@ namespace ExtraForms
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            GLMouseDown?.Invoke(this, new GLMouseEventArgs(
+            if (MakeCurrent()) GLMouseDown?.Invoke(this, new GLMouseEventArgs(
                 e.Button, e.Clicks, e.X / GLZoom - SurfaceSize.Width / 2f,
                 SurfaceSize.Height / 2f - e.Y / GLZoom, (float)e.Delta /
                 SystemInformation.MouseWheelScrollDelta));
@@ -105,7 +110,7 @@ namespace ExtraForms
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            GLMouseMove?.Invoke(this, new GLMouseEventArgs(
+            if (MakeCurrent()) GLMouseMove?.Invoke(this, new GLMouseEventArgs(
                 e.Button, e.Clicks, e.X / GLZoom - SurfaceSize.Width / 2f,
                 SurfaceSize.Height / 2f - e.Y / GLZoom, (float)e.Delta /
                 SystemInformation.MouseWheelScrollDelta));
@@ -113,7 +118,7 @@ namespace ExtraForms
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            GLMouseUp?.Invoke(this, new GLMouseEventArgs(
+            if (MakeCurrent()) GLMouseUp?.Invoke(this, new GLMouseEventArgs(
                 e.Button, e.Clicks, e.X / GLZoom - SurfaceSize.Width / 2f,
                 SurfaceSize.Height / 2f - e.Y / GLZoom, (float)e.Delta /
                 SystemInformation.MouseWheelScrollDelta));
@@ -150,7 +155,7 @@ namespace ExtraForms
             pfd.dwLayerMask = 0;
             pfd.dwVisibleMask = 0;
             pfd.dwDamageMask = 0;
-
+            
             HDC = gdi.GetDC(Handle);
             if (HDC == IntPtr.Zero) throw new Exception("OpenGLSurface error: Failed to get device context.");
             int iPixelFormat = gdi.ChoosePixelFormat(HDC, out pfd);
@@ -172,18 +177,21 @@ namespace ExtraForms
         }
         protected override void OnHandleDestroyed(EventArgs e)
         {
-            if (MakeCurrent()) GLStop?.Invoke(this, EventArgs.Empty);
+            if (!IsDisposed)
+            {
+                if (MakeCurrent()) GLStop?.Invoke(this, EventArgs.Empty);
 
-            if (HGLRC != IntPtr.Zero)
-            {
-                wgl.MakeCurrent(HDC, IntPtr.Zero);
-                wgl.DeleteContext(HGLRC);
-                HGLRC = IntPtr.Zero;
-            }
-            if (HDC != IntPtr.Zero)
-            {
-                gdi.ReleaseDC(Handle, HDC);
-                HDC = IntPtr.Zero;
+                if (HGLRC != IntPtr.Zero)
+                {
+                    wgl.MakeCurrent(HDC, IntPtr.Zero);
+                    wgl.DeleteContext(HGLRC);
+                    HGLRC = IntPtr.Zero;
+                }
+                if (HDC != IntPtr.Zero)
+                {
+                    gdi.ReleaseDC(Handle, HDC);
+                    HDC = IntPtr.Zero;
+                }
             }
 
             base.OnHandleDestroyed(e);
@@ -205,6 +213,30 @@ namespace ExtraForms
                 GLPaint?.Invoke(this, EventArgs.Empty);
                 gdi.SwapBuffers(HDC);
             }
+        }
+        
+        protected override void Dispose(bool disposing)
+        {
+            if (IsDisposed) return;
+
+            if (disposing)
+            {
+                if (MakeCurrent()) GLStop?.Invoke(this, EventArgs.Empty);
+
+                if (HGLRC != IntPtr.Zero)
+                {
+                    wgl.MakeCurrent(HDC, IntPtr.Zero);
+                    wgl.DeleteContext(HGLRC);
+                    HGLRC = IntPtr.Zero;
+                }
+                if (HDC != IntPtr.Zero)
+                {
+                    gdi.ReleaseDC(Handle, HDC);
+                    HDC = IntPtr.Zero;
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
